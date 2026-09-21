@@ -25,7 +25,7 @@ Ask the user each of the following, one section at a time, and record their answ
 
 **State / storage:** Zustand + TanStack Query (default), Redux Toolkit + RTK Query, or Context + fetch.
 
-**Linter / formatter:** ESLint (flat config) + Prettier (default). Ask whether to add `eslint-plugin-import` for import ordering.
+**Linter / formatter:** ESLint (flat config) + Prettier (default). Ask whether to add `eslint-plugin-import` for import ordering — if yes, pin **`eslint@^9`** (v10 breaks the plugin). For projects already on ESLint 10, use the successor `eslint-plugin-import-x` instead.
 
 **Unit testing:** Vitest + Testing Library (default) or Jest + Testing Library.
 
@@ -51,9 +51,11 @@ After the CLI finishes, install and configure whatever is still missing:
 - Chosen UI library (theme provider, tokens).
 - State / storage libraries.
 - ESLint + Prettier configs (only if the CLI did not already set them up).
-- Testing setup (Vitest / Jest, Playwright / Cypress).
+- Testing setup (Vitest / Jest, Playwright / Cypress). If Vitest is picked, install `vite-tsconfig-paths` and add it to `vitest.config.ts` `plugins` so `@/*` resolves from `tsconfig.json` — do **not** duplicate the alias into `resolve.alias`.
 
-Verify: dev server boots, typecheck passes, first component renders.
+**Next.js 16 callout:** if Next.js was picked, add a note to `CLAUDE.md`: Next 16 has breaking changes vs. training-data patterns (Turbopack default, `next build` no longer lints, `next typegen` needed for route types, `AGENTS.md` auto-regenerated). Consult `node_modules/next/dist/docs/` before writing route/data patterns from memory.
+
+Verify: dev server boots, typecheck passes, `pnpm build` succeeds (catches prerender-time issues that dev hides), and the first component renders.
 
 ### 4. Authentication decision *(optional)*
 

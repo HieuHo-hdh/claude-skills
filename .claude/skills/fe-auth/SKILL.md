@@ -54,6 +54,26 @@ The shared refresh promise pattern prevents a burst of parallel 401s from firing
 - Middleware refreshes the access token when it's within 60s of expiry.
 - Client components never see a token — they call `/api/*` on the Next origin.
 
+## Next.js `?next=` handling
+
+The login page reads `?next=<original path>` via `useSearchParams`. Two rules:
+
+1. **Suspense boundary:** wrap the inner form in a `<Suspense>` boundary. Without it, `next build` fails on static prerender.
+2. **Same-origin only:** run the value through a `safeNextPath()` helper before navigating (must start with `/`, no `//`, no protocol) — prevents open-redirect.
+
+## Stub compatibility (when running alongside `fe-boilerplate` stubs)
+
+If `fe-boilerplate` has already scaffolded `src/stubs/auth/`, the stub store uses `zustand/middleware`'s `persist` to `localStorage` so a browser reload keeps the fake session. Otherwise every admin-guard demo looks broken after F5.
+
+### Stub → real swap checklist
+
+When replacing stubs with the real client during `fe-auth`:
+
+- [ ] Replace every `@/stubs/auth/...` import with the real client / store / guard.
+- [ ] Grep the repo for `stubs/auth` — should be **zero** matches.
+- [ ] Delete `src/stubs/auth/`.
+- [ ] Re-run `pnpm typecheck` and `pnpm build` to confirm nothing lingers.
+
 ## Checklist
 
 - [ ] `at` never touches `localStorage` or a rendered DOM attribute.

@@ -27,12 +27,18 @@ Generate using the UI library the project picked in `fe-setup`. Do not hand-roll
 - **Antd:** use Antd's `Layout`, `Row`/`Col` grid, `Card`, and `Typography` primitives.
 - **MUI:** use MUI templates and `Container` / `Grid` / `Card` / `Typography`.
 
-## 3. Admin portal
+**No dead nav links.** Every Header / Footer entry must resolve to a real section on the same page (anchor like `#features`) or a real route. Bare `#` placeholders are not acceptable — either wire the target or remove the link.
+
+## 3. Public shell *(always emit)*
+
+Emit a shared `PublicShell` layout regardless of whether landing / admin / custom / auth stubs are picked. It owns the `min-h-screen`, max-width wrapper, and centered card frame — prevents the three auth pages (and the landing page, if any) from each duplicating layout scaffolding.
+
+## 4. Admin portal
 
 Pages:
 
 - `/` — home page, rendered inside the admin layout, guarded by auth (real guard if `fe-auth` ran; stubbed guard otherwise).
-- `/login`, `/register`, `/forgot-password` — public. Real forms if `fe-auth` ran; stubs otherwise.
+- `/login`, `/register`, `/forgot-password` — public, wrapped in `PublicShell`. Real forms if `fe-auth` ran; stubs otherwise.
 
 Layout:
 
@@ -59,7 +65,7 @@ Use the UI library's layout primitives:
 - **MUI:** `Drawer` + `AppBar` + `Toolbar` + `Container`.
 - **shadcn/ui:** compose from Sidebar / Sheet / NavigationMenu blocks.
 
-## 4. Custom template
+## 5. Custom template
 
 Ask the user:
 
@@ -78,6 +84,8 @@ Wrap the admin layout route in a guard that:
 3. If authenticated → render the layout.
 
 Do **not** guard by "token present" alone; guard by "store hydrated + user object present". Cold reload path: on app mount, call `/auth/refresh` once; if it fails, treat as logged out.
+
+**Next.js `useSearchParams` requires `<Suspense>`.** Any login page that reads `?next=` must wrap the inner form in a `<Suspense>` boundary — otherwise `next build` fails on static prerender.
 
 ## Auth stubs (when fe-auth is skipped)
 
@@ -125,7 +133,8 @@ app/(admin)/page.tsx         ← HomePage
 ## Output
 
 - Chosen starter(s): landing page, admin portal, and/or a custom template.
-- If admin: public shell + admin layout, auth guard component, route wiring.
+- Shared `PublicShell` layout (always emitted).
+- If admin: admin layout, auth guard component, route wiring.
 - If auth was wired: real login / register / forgot-password pages.
 - If auth was skipped: stub pages + `src/stubs/auth/` folder for fixture data.
 
