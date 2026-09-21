@@ -21,6 +21,18 @@ Ask the user each of the following, one section at a time, and record their answ
 
 **UI library:** Antd (default), MUI, or shadcn/ui + Tailwind. Pick one — do not mix.
 
+**Visual style / direction:** Pick a starting direction — a **seed** for `frontend-design`, not a locked template. `fe-boilerplate` invokes `frontend-design` to refine tokens against the actual subject before generating any UI.
+
+- **Refined minimal** — generous whitespace, 8pt spacing scale, one accent color, hairline borders, restrained motion. Good for SaaS, docs, portfolios.
+- **Editorial** — serif display + clean sans body, strong type scale, asymmetric layout, pull quotes, long line-height. Good for blogs, content sites.
+- **Glass / Aurora** — translucent layers, backdrop blur, soft gradient mesh, subtle borders, luminous highlights. Good for landing pages, dashboards with a hero.
+- **Bento grid** — modular tiles of varied sizes, consistent gutters, one hero tile, mixed content types. Good for feature overviews.
+- **Neo-brutalist** — thick outlines, hard offset shadows, flat saturated colors, oversized type, no gradients. Good for creative tools, youth brands.
+- **Dark / Terminal** — near-black surfaces, monospace accents, single neon accent, grid or noise texture, focus glows. Good for dev tools, dashboards.
+- **Soft / Clay** — rounded 3D-ish surfaces, pastel palette, inner shadows, friendly rounded type. Good for consumer apps, onboarding.
+- **Themed (commit-heavy)** — pick one world (retro-futurist, RPG, print, brutal industrial) and commit to its materials and type. Good for games, brand sites.
+- **Custom (brief-driven)** — skip presets; describe subject + audience, then `frontend-design`'s plan step derives tokens from scratch.
+
 **Router:** Next.js file-based (default when Next is chosen), React Router v6 (default when React + Vite), or Vue Router (when Vue).
 
 **State / storage:** Zustand + TanStack Query (default), Redux Toolkit + RTK Query, or Context + fetch.
@@ -76,7 +88,20 @@ Invoke `fe-boilerplate` to scaffold starter pages (landing page, admin portal, o
 
 ### 6. CLAUDE.md
 
-Create `CLAUDE.md` at project root capturing: selections from step 1, path alias rule, folder layout, auth status (wired now / deferred, link to `fe-auth`), and don'ts.
+Create `CLAUDE.md` at project root capturing:
+
+- Selections from step 1 (including the chosen **Visual style** direction).
+- Path alias rule, folder layout.
+- Auth status (wired now / deferred, link to `fe-auth`).
+- **Style section** — populated during `fe-boilerplate` via `frontend-design`. Fields:
+  - Direction name (from step 1).
+  - 4–6 color hexes with names.
+  - Type families + roles (display, body, mono if used).
+  - Layout concept (one sentence + alignment guidance).
+  - Motion rule (one line).
+  - Principles (2–3 bullets — what makes this design specific to the subject).
+  - **Consistency rule:** *"Read this section before writing any new UI. New components must reuse these tokens. To change the direction, run `fe-restyle` — do not deviate ad hoc."*
+- Don'ts.
 
 ## Input files
 

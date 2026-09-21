@@ -7,6 +7,22 @@ description: Use after fe-setup to scaffold starter pages. Offers three combinab
 
 Assumes `fe-setup` has picked framework / UI library / router / state. `fe-auth` is optional — if it has not run, auth pages are scaffolded as stubs.
 
+## 0. Style tokens *(before any UI)*
+
+Every generated component reads from the Style section in `CLAUDE.md`. Before scaffolding anything:
+
+1. Check `CLAUDE.md` for a populated Style section.
+2. If empty, **invoke `frontend-design`.** Use the direction chosen in `fe-setup` (Refined minimal / Editorial / Glass / Bento / Neo-brutalist / Dark-Terminal / Soft-Clay / Themed / Custom) as the seed, then run `frontend-design`'s plan → review-against-brief step to derive:
+   - 4–6 color hexes with names.
+   - Type families + roles.
+   - Layout concept + alignment guidance.
+   - Motion rule.
+   - 2–3 principles specific to the subject.
+3. Write the derived tokens into `CLAUDE.md`'s Style section, and into the UI library's theme (`tailwind.config.ts` / Antd `ConfigProvider` theme / MUI `createTheme`) so components consume them by variable, not by hardcoded hex.
+4. Only then generate landing / admin / custom pages, honoring the tokens.
+
+If the Style section is already populated, **reuse it** — do not regenerate. Deviations must go through `fe-restyle`, not ad-hoc edits.
+
 ## 1. Choose starter(s)
 
 Ask the user which starter(s) to scaffold. **Options are combinable** (e.g., landing + admin):
