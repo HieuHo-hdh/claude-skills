@@ -1,11 +1,11 @@
 ---
 name: fe-boilerplate
-description: Use after fe-setup to scaffold starter pages. Offers three combinable options - landing page, admin portal, or a user-described custom template. Auth pages are stubbed if fe-auth was skipped.
+description: Use after fe-setup to scaffold starter pages. Offers three combinable options - landing page, admin portal, or a user-described custom template. Auth pages are scaffolded as stubs unless fe-auth already ran; fe-auth swaps them for the real client later.
 ---
 
 # fe-boilerplate
 
-Assumes `fe-setup` has picked framework / UI library / router / state. `fe-auth` is optional - if it has not run, auth pages are scaffolded as stubs.
+Assumes `fe-setup` has picked framework / UI library / router / state. Runs **before** `fe-auth` in the `fe-setup` flow - auth pages are scaffolded as stubs by default. Only when `fe-auth` has already wired a client (standalone re-run) are they real.
 
 ## Contents
 
@@ -15,16 +15,16 @@ Assumes `fe-setup` has picked framework / UI library / router / state. `fe-auth`
 - [Shared conventions](#shared-conventions) - responsive, a11y, coding, structure rules.
 
 **Workflow** - what to scaffold and in what order.
-- [0. Style tokens](#0-style-tokens-before-any-ui) - derive tokens before any UI.
-- [1. Choose starter(s)](#1-choose-starters) - landing / admin / custom, real auth vs stubs.
+- [0. Style tokens](#0-style-tokens-before-any-ui) - ask direction, derive tokens before any UI.
+- [1. Choose starter(s)](#1-choose-starters) - landing / admin / custom, auth mode auto-detected.
 - [2. Landing page](#2-landing-page) - Header → Hero → Features → CTA → Footer.
 - [3. Public shell](#3-public-shell-always-emit) - shared layout, always emitted.
 - [4. Admin portal](#4-admin-portal) - shell, SideNav, Header, Body, Footer.
 - [5. Custom template](#5-custom-template) - user-described sections + styling.
 
-**Auth handling** - real vs stubbed paths.
-- [Auth guard](#auth-guard-when-fe-auth-is-wired) - store-hydrated guard, `?next=` handling.
-- [Auth stubs](#auth-stubs-when-fe-auth-is-skipped) - fixture pages under `src/stubs/auth/`.
+**Auth handling** - stubbed default, real path when `fe-auth` already ran.
+- [Auth stubs](#auth-stubs-default) - fixture pages under `src/stubs/auth/`, swapped by `fe-auth`.
+- [Auth guard](#auth-guard-when-fe-auth-already-ran) - store-hydrated guard, optional `?next=` handling.
 
 **Conventions** - forms and routes.
 - [Form conventions](#form-conventions) - schema-first, inline errors, disabled submit.
@@ -34,11 +34,10 @@ Assumes `fe-setup` has picked framework / UI library / router / state. `fe-auth`
 - [Input](#input) - `fe-setup` selections, optional `fe-auth` client.
 - [Output](#output) - starters, shells, guard, routes, stubs.
 - [Verification](#verification) - typecheck, build, anchor / stub sweeps.
-- [Recommendations](#recommendations) - guardrails.
 
 ## Prerequisites
 
-- **`fe-setup` has run** - project scaffolded at `source-code/<project-name>/` with `CLAUDE.md` capturing framework, UI library, router, state, direction seed.
+- **`fe-setup` has run** - project scaffolded at `source-code/<project-name>/` with `CLAUDE.md` capturing framework, UI library, router, state, and an empty Style section stub.
 - **shadcn/ui projects:** `pnpm dlx shadcn@latest add …` runs on demand - no pre-install needed, but network access is required the first time.
 
 ## Working directory
@@ -59,7 +58,19 @@ Runs inside `source-code/<project-name>/` - the project scaffolded by `fe-setup`
 Every generated component reads from the Style section in `CLAUDE.md`. Before scaffolding anything:
 
 1. Check `CLAUDE.md` for a populated Style section.
-2. If empty, derive tokens from the direction chosen in `fe-setup` (Refined minimal / Editorial / Glass / Bento / Neo-brutalist / Dark-Terminal / Soft-Clay / Themed / Custom). Produce:
+2. If empty, ask the user to pick a direction - a **seed**, not a locked template. Present the options below, then refine the tokens against the actual subject.
+
+   - **Refined minimal** - generous whitespace, 8pt spacing scale, one accent color, hairline borders, restrained motion. Good for SaaS, docs, portfolios.
+   - **Editorial** - serif display + clean sans body, strong type scale, asymmetric layout, pull quotes, long line-height. Good for blogs, content sites.
+   - **Glass / Aurora** - translucent layers, backdrop blur, soft gradient mesh, subtle borders, luminous highlights. Good for landing pages, dashboards with a hero.
+   - **Bento grid** - modular tiles of varied sizes, consistent gutters, one hero tile, mixed content types. Good for feature overviews.
+   - **Neo-brutalist** - thick outlines, hard offset shadows, flat saturated colors, oversized type, no gradients. Good for creative tools, youth brands.
+   - **Dark / Terminal** - near-black surfaces, monospace accents, single neon accent, grid or noise texture, focus glows. Good for dev tools, dashboards.
+   - **Soft / Clay** - rounded 3D-ish surfaces, pastel palette, inner shadows, friendly rounded type. Good for consumer apps, onboarding.
+   - **Themed (commit-heavy)** - pick one world (retro-futurist, RPG, print, brutal industrial) and commit to its materials and type. Good for games, brand sites.
+   - **Custom (brief-driven)** - skip presets; describe subject + audience, then derive tokens from scratch.
+
+   Produce:
    - 4–6 color hexes with names.
    - Type families + roles.
    - Layout concept + alignment guidance.
@@ -78,7 +89,7 @@ Ask the user which starter(s) to scaffold. **Options are combinable** (e.g., lan
 - **Admin portal** - authenticated dashboard shell.
 - **Custom** - user describes what they want; ask for sections and styling preferences, then scaffold.
 
-Then ask: "Wire real auth pages now (invoke `fe-auth`), or scaffold auth pages as stubs?" Stubs live under `src/stubs/auth/` with placeholder handlers and fixture data - safe to remove once real auth is wired.
+Do not ask about auth. Detect it: if `src/api/` already has an auth client from `fe-auth`, emit real auth pages; otherwise scaffold them as stubs under `src/stubs/auth/` with placeholder handlers and fixture data. `fe-auth` replaces the stubs afterwards.
 
 ## 2. Landing page
 
@@ -114,8 +125,8 @@ Emit a shared `PublicShell` layout regardless of whether landing / admin / custo
 
 Pages:
 
-- `/` - home page, rendered inside the admin layout, guarded by auth (real guard if `fe-auth` ran; stubbed guard otherwise).
-- `/login`, `/register`, `/forgot-password` - public, wrapped in `PublicShell`. Real forms if `fe-auth` ran; stubs otherwise.
+- `/` - home page, rendered inside the admin layout, guarded by auth (stub guard by default; real guard if `fe-auth` already ran).
+- `/login`, `/register`, `/forgot-password` - public, wrapped in `PublicShell`. Stubs by default; real forms if `fe-auth` already ran.
 
 Layout:
 
@@ -152,27 +163,29 @@ Ask the user:
 
 Scaffold with the UI library from `fe-setup` and match the styling notes. If the user is vague, propose a section list back for confirmation before generating.
 
-## Auth guard (when fe-auth is wired)
-
-Wrap the admin layout route in a guard that:
-
-1. Reads auth state from the store.
-2. If unauthenticated → redirect to `/login` with `?next=<original path>`.
-3. If authenticated → render the layout.
-
-Do **not** guard by "token present" alone; guard by "store hydrated + user object present". Cold reload path: on app mount, call `/auth/refresh` once; if it fails, treat as logged out.
-
-**Next.js `useSearchParams` requires `<Suspense>`.** Any login page that reads `?next=` must wrap the inner form in a `<Suspense>` boundary - otherwise `next build` fails on static prerender.
-
-## Auth stubs (when fe-auth is skipped)
+## Auth stubs (default)
 
 Location: `src/stubs/auth/` - one folder for all stub pieces so they can be deleted together.
 
 - `src/stubs/auth/users.json` - fixture users for local testing.
-- `src/stubs/auth/handlers.ts` - fake `login`, `register`, `forgotPassword`, `logout` functions that resolve after a short delay and store a fake user in memory.
+- `src/stubs/auth/handlers.ts` - fake `login`, `register`, `forgotPassword`, `logout` functions that resolve after a short delay and write a fake user to the stub store.
 - `src/stubs/auth/guard.tsx` - stub guard that treats any resolved fake user as "authenticated".
 
-Pages import from `src/stubs/auth/` instead of a real `authClient`. When `fe-auth` runs later, swap the stub imports for the real client and delete `src/stubs/auth/`.
+The stub store persists the fake session (Zustand `persist` → `localStorage`) so a reload keeps the admin guard demo working.
+
+Pages import from `src/stubs/auth/` instead of a real `authClient`. When `fe-auth` runs later, it swaps the stub imports for the real client and deletes `src/stubs/auth/` - see its stub → real swap checklist.
+
+## Auth guard (when fe-auth already ran)
+
+Wrap the admin layout route in a guard that:
+
+1. Reads auth state from the store.
+2. If unauthenticated → redirect to `/login`. Appending `?next=<original path>` is optional (return-to-origin); default is a plain `/login`.
+3. If authenticated → render the layout.
+
+Do **not** guard by "token present" alone; guard by "store hydrated + user object present". Cold reload path: on app mount, call `/auth/refresh` once; if it fails, treat as logged out.
+
+**Next.js `useSearchParams` requires `<Suspense>`.** If `?next=` is enabled, any login page that reads it must wrap the inner form in a `<Suspense>` boundary - otherwise `next build` fails on static prerender.
 
 ## Form conventions
 
@@ -180,6 +193,7 @@ Pages import from `src/stubs/auth/` instead of a real `authClient`. When `fe-aut
 - Submit button disables while the request is in flight.
 - API errors surface inline under the relevant field (map `error.details` from the backend envelope) with a fallback banner for non-field errors.
 - Password fields use `type="password"` with a show/hide toggle.
+- `/forgot-password` shows the same confirmation whether or not the email exists.
 
 ## Routes wiring (admin portal)
 
@@ -205,15 +219,15 @@ app/(admin)/page.tsx         ← HomePage
 ## Input
 
 - `fe-setup` selections (framework, UI library, router, state).
-- `fe-auth` client + store (optional).
+- `fe-auth` client + store (optional - only present on a standalone re-run after auth).
 
 ## Output
 
 - Chosen starter(s): landing page, admin portal, and/or a custom template.
 - Shared `PublicShell` layout (always emitted).
 - If admin: admin layout, auth guard component, route wiring.
-- If auth was wired: real login / register / forgot-password pages.
-- If auth was skipped: stub pages + `src/stubs/auth/` folder for fixture data.
+- Default: stub login / register / forgot-password pages + `src/stubs/auth/` folder for fixture data.
+- If `fe-auth` already ran: real login / register / forgot-password pages.
 
 ## Verification
 
@@ -228,20 +242,12 @@ pnpm dev     # smoke every scaffolded route once
 
 - Every Header / Footer link resolves - no bare `href="#"`, no dead routes.
 - Sticky-header + `#section` anchor click lands with `getBoundingClientRect().top >= header.bottom` (Playwright preferred).
-- `?next=` param is same-origin (starts with `/`, no `//`, no protocol).
-- Admin routes redirect to `/login?next=<path>` when unauthenticated.
-- If auth was stubbed: `src/stubs/auth/` folder exists and is imported only by scaffolded pages. Grep sweep:
+- Admin routes redirect to `/login` when unauthenticated.
+- If `?next=` is enabled: the param is same-origin (starts with `/`, no `//`, no protocol) - validate before navigating to prevent open redirect.
+- If auth was stubbed: `src/stubs/auth/` folder exists and is imported only by scaffolded pages. After `fe-auth` runs, grep sweep:
 
   ```bash
   rg -n 'stubs/auth' src
   ```
 
-  Zero results outside the stub folder itself means real auth has fully replaced it.
-
-## Recommendations
-
-- Use the UI library's primitives / block templates - do not hand-roll Button / Input / Form / Card / Layout / Hero / Feature grid.
-- Keep pages presentational; move API (or stub) calls into hooks (`useLogin`, `useRegister`, `useForgotPassword`) that own the loading + error state.
-- The `?next=` redirect param must be a same-origin path - validate before navigating to prevent open-redirect.
-- Do not reveal whether an email exists on `/forgot-password`.
-- Delete `src/stubs/auth/` once real auth replaces it - leaving stubs risks accidental production use.
+  Zero results means real auth has fully replaced the stubs.

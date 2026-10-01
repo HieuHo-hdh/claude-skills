@@ -76,7 +76,7 @@ Defaults:
 - **Data-state criteria** (loading / error / empty / success) → integration test at the page level.
 - **Form validation criteria** → unit test on the form component.
 - **Cross-page user flows** (sign in → dashboard → open modal) → e2e.
-- **Auth guard behavior** (401 mid-session, redirect to login with `next=`) → e2e.
+- **Auth guard behavior** (401 mid-session, redirect to `/login`, plus `next=` when the project enables it) → e2e.
 
 If unit + integration would test the same behavior twice, keep the smaller one and drop the duplicate.
 
@@ -89,7 +89,7 @@ Emit this table and paste it into the plan later (see [Annotate the plan](#7-ann
 | 1 | profile renders once data resolves | integration | `SettingsProfilePage.test.tsx` | `renders the profile once the query resolves` |
 | 2 | empty display name blocks submit | unit | `ProfileForm.test.tsx` | `disables Save when displayName is empty` |
 | 3 | 500 on save surfaces toast + rollback | integration | `SettingsProfilePage.test.tsx` | `rolls back the header greeting on save failure` |
-| 4 | 401 mid-session → redirect to `/login?next=` | e2e | `e2e/settings-profile.spec.ts` | `redirects to login when the session expires mid-edit` |
+| 4 | 401 mid-session → redirect to `/login` | e2e | `e2e/settings-profile.spec.ts` | `redirects to login when the session expires mid-edit` |
 
 **Every criterion must appear.** If a criterion cannot be tested (e.g. "renders in <500ms" is a performance criterion, out of scope for RTL), record it as `Level: manual` and note who verifies it.
 
@@ -177,7 +177,7 @@ Append this section to `docs/plans/<slug>.md` (before **Out of scope**):
 | 1 | profile renders once data resolves | integration | `SettingsProfilePage.test.tsx` | ✅ |
 | 2 | empty display name blocks submit | unit | `ProfileForm.test.tsx` | ✅ |
 | 3 | 500 on save surfaces toast + rollback | integration | `SettingsProfilePage.test.tsx` | ✅ |
-| 4 | 401 mid-session → redirect to `/login?next=` | e2e | `e2e/settings-profile.spec.ts` | ✅ |
+| 4 | 401 mid-session → redirect to `/login` | e2e | `e2e/settings-profile.spec.ts` | ✅ |
 | 5 | renders in <500ms | manual | — | 👀 QA |
 
 E2E: **enabled** (Playwright, 1 flow).

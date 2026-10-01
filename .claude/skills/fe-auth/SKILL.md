@@ -73,9 +73,9 @@ The shared refresh promise pattern prevents a burst of parallel 401s from firing
 - Middleware refreshes the access token when it's within 60s of expiry.
 - Client components never see a token - they call `/api/*` on the Next origin.
 
-## Next.js `?next=` handling
+## Next.js `?next=` handling (optional)
 
-The login page reads `?next=<original path>` via `useSearchParams`. Two rules:
+Return-to-origin is optional; default is a plain `/login` redirect. If enabled, the login page reads `?next=<original path>` via `useSearchParams`. Two rules:
 
 1. **Suspense boundary:** wrap the inner form in a `<Suspense>` boundary. Without it, `next build` fails on static prerender.
 2. **Same-origin only:** run the value through a `safeNextPath()` helper before navigating (must start with `/`, no `//`, no protocol) - prevents open-redirect.

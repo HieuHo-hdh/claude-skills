@@ -1,6 +1,6 @@
 ---
 name: fe-setup
-description: Use when scaffolding a new frontend project from scratch. Walks through language / framework / UI / router / state / lint / test selections, prefers the framework's official CLI, and optionally hands off to fe-auth and fe-boilerplate.
+description: Use when scaffolding a new frontend project from scratch. Walks through language / framework / UI / router / state / lint / test selections, prefers the framework's official CLI, and optionally hands off to fe-boilerplate, then fe-auth.
 ---
 
 # fe-setup
@@ -13,19 +13,18 @@ Default: **pin every dependency to its latest stable version at install time.** 
 - [Prerequisites](#prerequisites) - Node, package manager, `source-code/`, network.
 - [Working directory](#working-directory) - target project under `source-code/`.
 
-**Workflow** - selections → confirm → scaffold → auth → boilerplate → CLAUDE.md.
-- [1. Selections](#1-selections) - language / framework / UI / router / state / lint / test / style seed.
+**Workflow** - selections → confirm → scaffold → boilerplate → auth → CLAUDE.md.
+- [1. Selections](#1-selections) - language / framework / UI / router / state / lint / test.
 - [2. Confirmation](#2-confirmation) - echo selection and get approval.
-- [3. Scaffold](#3-scaffold) - CLI, path aliases, UI library, state, HTTP, lint, tests.
-- [4. Authentication decision](#4-authentication-decision-optional) - wire now via `fe-auth` or defer.
-- [5. Boilerplate pages](#5-boilerplate-pages-optional) - hand off to `fe-boilerplate`.
+- [3. Scaffold](#3-scaffold) - CLI, path aliases, Tailwind, UI library, state, HTTP, lint, tests.
+- [4. Boilerplate pages](#4-boilerplate-pages-optional) - hand off to `fe-boilerplate`, auth pages stubbed.
+- [5. Authentication decision](#5-authentication-decision-optional) - wire now via `fe-auth` (replaces stubs) or defer.
 - [6. CLAUDE.md](#6-claudemd) - record selections + Style section stub.
 
 **I/O & verification** - closing loop.
 - [Input](#input) - none (greenfield).
 - [Output](#output) - skeleton, config, `CLAUDE.md`.
 - [Verification](#verification) - dev / typecheck / lint / test / build.
-- [Recommendations](#recommendations) - guardrails.
 
 ## Prerequisites
 
@@ -33,7 +32,6 @@ Default: **pin every dependency to its latest stable version at install time.** 
 - **Package manager** - one of `pnpm` (default), `npm`, `yarn`, `bun` installed globally. Verify with `<pm> -v` before scaffolding.
 - **`source-code/` directory** at repo root - create it if missing (all projects live under it, never at the repo root).
 - **Network access** - the framework CLIs (`pnpm create next-app`, `pnpm create vite`, `pnpm create vue`) fetch templates from the registry on first run.
-- No MCPs required at this stage.
 
 ## Working directory
 
@@ -58,23 +56,16 @@ Ask the user each of the following, one section at a time, and record their answ
 
 **Framework:** Next.js (App Router, default), React + Vite, or Vue + Vite.
 
-**UI library:** Antd (default), MUI, or shadcn/ui + Tailwind. Pick one - do not mix.
+**UI library:** Antd (default), MUI, or shadcn/ui. Pick one - do not mix.
 
-**Visual style / direction:** Pick a starting direction - a **seed**, not a locked template. `fe-boilerplate` refines the tokens against the actual subject before generating any UI.
+**Tailwind CSS:** Ask right after the UI library.
 
-- **Refined minimal** - generous whitespace, 8pt spacing scale, one accent color, hairline borders, restrained motion. Good for SaaS, docs, portfolios.
-- **Editorial** - serif display + clean sans body, strong type scale, asymmetric layout, pull quotes, long line-height. Good for blogs, content sites.
-- **Glass / Aurora** - translucent layers, backdrop blur, soft gradient mesh, subtle borders, luminous highlights. Good for landing pages, dashboards with a hero.
-- **Bento grid** - modular tiles of varied sizes, consistent gutters, one hero tile, mixed content types. Good for feature overviews.
-- **Neo-brutalist** - thick outlines, hard offset shadows, flat saturated colors, oversized type, no gradients. Good for creative tools, youth brands.
-- **Dark / Terminal** - near-black surfaces, monospace accents, single neon accent, grid or noise texture, focus glows. Good for dev tools, dashboards.
-- **Soft / Clay** - rounded 3D-ish surfaces, pastel palette, inner shadows, friendly rounded type. Good for consumer apps, onboarding.
-- **Themed (commit-heavy)** - pick one world (retro-futurist, RPG, print, brutal industrial) and commit to its materials and type. Good for games, brand sites.
-- **Custom (brief-driven)** - skip presets; describe subject + audience, then derive tokens from scratch during `fe-boilerplate`.
+- **shadcn/ui** → Tailwind is required. Do not ask.
+- **Antd / MUI** → ask "Add Tailwind?" (default no). If yes, Tailwind utilities handle layout and spacing around library components; the library's theming still styles its own components - never both on the same element.
 
 **Router:** Next.js file-based (default when Next is chosen), React Router v6 (default when React + Vite), or Vue Router (when Vue).
 
-**State / storage:** Zustand + TanStack Query (default), Redux Toolkit + RTK Query, or Context + fetch.
+**State / storage:** Zustand + TanStack Query (default), Redux Toolkit (slice per entity, RTK Query optional), or Context + fetch. Patterns per choice: `.claude/rules/fe-state-management.md`.
 
 **Linter / formatter:** ESLint (flat config) + Prettier (default). Ask whether to add `eslint-plugin-import` for import ordering - if yes, pin **`eslint@^9`** (v10 breaks the plugin). For projects already on ESLint 10, use the successor `eslint-plugin-import-x` instead.
 
@@ -92,7 +83,7 @@ Echo the full selection back as a bullet list and get explicit approval before r
 
 Run the CLI **from `source-code/`** with the chosen name and package manager (examples use `pnpm` - swap for the chosen PM):
 
-- **Next.js:** `cd source-code && pnpm create next-app@latest <name> --yes` (drop `--yes` if the user wants the interactive prompts).
+- **Next.js:** `cd source-code && pnpm create next-app@latest <name> --yes` (drop `--yes` if the user wants the interactive prompts). Add `--tailwind` or `--no-tailwind` per the Tailwind answer so the CLI wires it (or skips it) in the same run.
 - **React + Vite:** `cd source-code && pnpm create vite <name> --template react-ts` (or `react` for JS).
 - **Vue + Vite:** `cd source-code && pnpm create vue@latest <name>`.
 
@@ -120,6 +111,23 @@ Add `tsconfigPaths()` to `plugins` in `vite.config.ts`. Do **not** duplicate the
 
 For **Next.js** the alias in `tsconfig.json` is enough - Next reads it directly.
 
+**Tailwind CSS** *(shadcn/ui always; Antd / MUI only if the user said yes)*:
+
+- **Next.js:** `create-next-app --tailwind` already installed and wired Tailwind (PostCSS config, CSS entry) - nothing to install.
+- **Vite (React / Vue):**
+  ```bash
+  pnpm add -D tailwindcss @tailwindcss/vite
+  ```
+  Add `tailwindcss()` to `plugins` in `vite.config.ts`. Create `src/index.css` with `@import "tailwindcss";` (v4's single import replaces the three `@tailwind base / components / utilities` directives) and import it once in `main.tsx`.
+
+Both frameworks - class-composition helpers:
+
+```bash
+pnpm add clsx tailwind-merge class-variance-authority
+```
+
+Create `src/lib/cn.ts` → `export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))`. `fe-boilerplate` step 0 adds the theme tokens.
+
 **UI library:**
 
 - **Antd (default):**
@@ -141,12 +149,11 @@ For **Next.js** the alias in `tsconfig.json` is enough - Next reads it directly.
   pnpm add @mui/material-nextjs
   ```
 
-- **shadcn/ui + Tailwind:**
+- **shadcn/ui** (requires the Tailwind block above):
   ```bash
-  pnpm add -D tailwindcss @tailwindcss/postcss postcss
   pnpm dlx shadcn@latest init
   ```
-  Add primitives on demand: `pnpm dlx shadcn@latest add button input card dialog`.
+  `init` writes `components.json` and `src/components/ui/`. Set `aliases.utils` in `components.json` to `@/lib/cn` so shadcn reuses the `cn` helper from the Tailwind block. Add primitives on demand: `pnpm dlx shadcn@latest add button input card dialog`.
 
 **State / storage:**
 
@@ -155,11 +162,13 @@ For **Next.js** the alias in `tsconfig.json` is enough - Next reads it directly.
   pnpm add zustand @tanstack/react-query
   pnpm add -D @tanstack/react-query-devtools
   ```
+  Create `src/lib/query-client.ts` (`new QueryClient({ defaultOptions: { queries: { staleTime: 60_000, retry: 1 } } })`) and wrap the app root in `QueryClientProvider` (devtools in dev only). Zustand stores are added per concern later - no skeleton.
 
-- **Redux Toolkit + RTK Query:**
+- **Redux Toolkit (slice per entity; RTK Query optional):**
   ```bash
   pnpm add @reduxjs/toolkit react-redux
   ```
+  Create `src/store/index.ts` (`configureStore`, `RootState`, `AppDispatch`, typed `useAppDispatch` / `useAppSelector`) and wrap the app root in `<Provider store={store}>` (Next.js: a client `providers.tsx`). Seed `reducer` with a `ui` slice (`src/store/ui-slice.ts`, `{ isSideNavOpen: boolean }`) - an empty `reducer: {}` warns in dev. Entity slices and the `fe-auth` slice register next to it. RTK Query ships inside `@reduxjs/toolkit` - no extra install.
 
 - **Context + fetch:** no install.
 
@@ -189,6 +198,8 @@ If the user opted in to import ordering, add:
 pnpm add -D eslint-plugin-import
 ```
 For projects already pinned to ESLint 10, swap `eslint-plugin-import` → `eslint-plugin-import-x` instead.
+
+Projects with Tailwind also add `pnpm add -D prettier-plugin-tailwindcss` and list it in Prettier's `plugins`.
 
 **Unit testing:**
 
@@ -221,14 +232,20 @@ For projects already pinned to ESLint 10, swap `eslint-plugin-import` → `eslin
 
 **Next.js 16 callout:** if Next.js was picked, add a note to `CLAUDE.md`: Next 16 has breaking changes vs. training-data patterns (Turbopack default, `next build` no longer lints, `next typegen` needed for route types, `AGENTS.md` auto-regenerated). Consult `node_modules/next/dist/docs/` before writing route/data patterns from memory.
 
+Create the `src/` folders the selections need (`api/`, `hooks/`, `lib/`, `schemas/`, `components/`, `layouts/`, plus `store/` or `theme/`) per `.claude/rules/fe-project-structure.md`.
+
 Once install completes, run [Verification](#verification) before moving on.
 
-### 4. Authentication decision *(optional)*
+### 4. Boilerplate pages *(optional)*
+
+Ask first: "Scaffold starter pages?" Invoke `fe-boilerplate` to scaffold them (landing page, admin portal, or a custom description - combinable). Runs **before** auth, so auth pages are scaffolded as stubs under `src/stubs/auth/`.
+
+### 5. Authentication decision *(optional)*
 
 Ask: "Wire authentication now, or defer?" Auth is **optional at setup time** - you can skip it and invoke `fe-auth` later.
 
-- If **now** → invoke `fe-auth` to wire storage, client, and interceptors.
-- If **deferred** → note "auth deferred; run `fe-auth` when needed" in `CLAUDE.md`.
+- If **now** → invoke `fe-auth` to wire storage, client, and interceptors. If step 4 emitted stubs, `fe-auth` swaps them for the real client and deletes `src/stubs/auth/`.
+- If **deferred** → note "auth deferred; run `fe-auth` when needed" in `CLAUDE.md`. Stubs from step 4 stay in place.
 
 Storage recommendation per framework (full table in `fe-auth`):
 
@@ -236,19 +253,15 @@ Storage recommendation per framework (full table in `fe-auth`):
 - **React SPA:** access token in memory, refresh token in HttpOnly cookie.
 - **Simple SPA (not recommended):** both in `localStorage` - only with explicit user consent.
 
-### 5. Boilerplate pages *(optional)*
-
-Invoke `fe-boilerplate` to scaffold starter pages (landing page, admin portal, or a custom description - combinable). If auth was skipped, auth pages are scaffolded as stubs under `src/stubs/auth/` and can be removed later.
-
 ### 6. CLAUDE.md
 
 Create `CLAUDE.md` at project root capturing:
 
-- Selections from step 1 (including the chosen **Visual style** direction).
+- Selections from step 1.
 - Path alias rule, folder layout.
 - Auth status (wired now / deferred, link to `fe-auth`).
-- **Style section** - populated during `fe-boilerplate`. Fields:
-  - Direction name (from step 1).
+- **Style section** - empty stub here; populated by `fe-boilerplate` step 0 (which asks for the direction). Fields:
+  - Direction name.
   - 4–6 color hexes with names.
   - Type families + roles (display, body, mono if used).
   - Layout concept (one sentence + alignment guidance).
@@ -267,7 +280,7 @@ Create `CLAUDE.md` at project root capturing:
 - `tsconfig.json` + build-tool config with `@/*` alias.
 - ESLint + Prettier configs.
 - `CLAUDE.md` at project root.
-- (Optional, via `fe-auth` + `fe-boilerplate`) auth client, store, starter pages, admin layout.
+- (Optional, via `fe-boilerplate` then `fe-auth`) starter pages, admin layout, auth client, store.
 
 ## Verification
 
@@ -284,11 +297,3 @@ pnpm build           # catches prerender-time issues that dev hides
 - `pwd` ends with `source-code/<name>` (not the repo root, not a sibling).
 - `@/*` alias resolves in both source and tests (import a stub via `@/lib/...` in a test).
 - `CLAUDE.md` exists at project root with selections + auth status recorded.
-
-## Recommendations
-
-- If a UI library is chosen, do not hand-roll primitives (Button, Modal, Table, Form, Select) - the library covers them.
-- Prefer library theming (Antd tokens / MUI theme / Tailwind theme) over inline styles.
-- Do not mix UI libraries.
-- Set up path aliases **before** writing any imports.
-- Avoid storing tokens in `localStorage` - only with explicit user consent; see `fe-auth`.

@@ -208,3 +208,4 @@ Every project's lint config is the source of truth. Run `pnpm lint` before decla
 - `React.FC` on component signatures - hides prop types and implicitly adds `children`; type the props directly.
 - Barrel `index.ts` at a directory root (`src/components/index.ts`) - defeats tree-shaking and hides import origin.
 - Zod schemas re-derived inside a component - hoist to the module scope so they are compiled once.
+- Hand-rolled Button / Modal / Table / Form / Select / Layout when the chosen UI library provides one - compose the library primitive instead.

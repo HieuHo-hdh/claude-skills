@@ -8,8 +8,8 @@ A workspace of **`fe-*` skills** and shared **rules** that guide Claude Code thr
 .claude/
 ├── skills/           ← invocable workflows (imperative)
 │   ├── fe-setup/
-│   ├── fe-auth/
 │   ├── fe-boilerplate/
+│   ├── fe-auth/
 │   ├── fe-component/
 │   ├── fe-page/
 │   ├── fe-restyle/
@@ -39,8 +39,8 @@ Skills split into two groups: **project one-shots** (scaffold once, done) and th
 | Skill               | When to use                                                                                                                                                     |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`fe-setup`**      | Scaffold a new frontend project from scratch. Walks through language / framework / UI library / router / state / lint / test selections.                        |
+| **`fe-boilerplate`**| After `fe-setup`, scaffold starter pages (landing / admin portal / custom). Derives Style tokens on first run. Auth pages stubbed if `fe-auth` has not run yet. |
 | **`fe-auth`**       | Wire authentication: token storage (SPA vs Next.js BFF), axios interceptors with a shared refresh promise, guard component, store slice.                        |
-| **`fe-boilerplate`**| After `fe-setup`, scaffold starter pages (landing / admin portal / custom). Derives Style tokens on first run. Auth pages stubbed if `fe-auth` was skipped.     |
 | **`fe-restyle`**    | Change the visual direction of an existing project. Derives new tokens, updates `CLAUDE.md`, migrates UI theme-first.                                           |
 
 **Single-artifact skills** — use directly for a component or page that does not need a plan.
@@ -107,8 +107,8 @@ Rules are **declarative conventions** read by skills — not invoked directly. W
 | Skill / Rule       | workspace | responsive | a11y | coding | markdown |
 | ------------------ | :-------: | :--------: | :--: | :----: | :------: |
 | `fe-setup`         |     ✅     |            |      |        |    ✅     |
-| `fe-auth`          |     ✅     |            |  ✅   |   ✅    |    ✅     |
 | `fe-boilerplate`   |     ✅     |     ✅      |  ✅   |   ✅    |    ✅     |
+| `fe-auth`          |     ✅     |            |  ✅   |   ✅    |    ✅     |
 | `fe-component`     |     ✅     |     ✅      |  ✅   |   ✅    |    ✅     |
 | `fe-page`          |     ✅     |     ✅      |  ✅   |   ✅    |    ✅     |
 | `fe-restyle`       |     ✅     |     ✅      |  ✅   |   ✅    |    ✅     |
