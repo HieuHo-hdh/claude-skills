@@ -13,11 +13,12 @@ Default: **pin every dependency to its latest stable version at install time.** 
 - [Prerequisites](#prerequisites) - Node, package manager, `source-code/`, network.
 - [Working directory](#working-directory) - target project under `source-code/`.
 
-**Workflow** - selections → confirm → scaffold → boilerplate → auth → CLAUDE.md.
+**Workflow** - selections → confirm → scaffold → boilerplate → animation → auth → CLAUDE.md.
 - [1. Selections](#1-selections) - language / framework / UI / router / state / lint / test.
 - [2. Confirmation](#2-confirmation) - echo selection and get approval.
 - [3. Scaffold](#3-scaffold) - CLI, path aliases, Tailwind, UI library, state, HTTP, lint, tests.
 - [4. Boilerplate pages](#4-boilerplate-pages-optional) - hand off to `fe-boilerplate`, auth pages stubbed.
+- [4b. Animation decision](#4b-animation-decision-optional) - hand off to `fe-motion` when enabled.
 - [5. Authentication decision](#5-authentication-decision-optional) - wire now via `fe-auth` (replaces stubs) or defer.
 - [6. CLAUDE.md](#6-claudemd) - record selections + Style section stub.
 
@@ -63,6 +64,13 @@ Ask the user each of the following, one section at a time, and record their answ
 - **shadcn/ui** → Tailwind is required. Do not ask.
 - **Antd / MUI** → ask "Add Tailwind?" (default no). If yes, Tailwind utilities handle layout and spacing around library components; the library's theming still styles its own components - never both on the same element.
 
+**Icon library:** Ask after Tailwind. Default follows the UI library; alternatives are explicit opt-ins. Pick one - do not mix icon packages in the same app (two visual languages, two bundle costs).
+
+- **Antd** → `@ant-design/icons` (default). Alternative: `lucide-react`.
+- **MUI** → `@mui/icons-material` (default). Alternative: `lucide-react`.
+- **shadcn/ui** → `lucide-react` (default, shadcn primitives already import it).
+- Other opt-ins (any UI library): `@phosphor-icons/react` (flexible weights), `@heroicons/react` (Tailwind-friendly), `@tabler/icons-react` (large coverage).
+
 **Router:** Next.js file-based (default when Next is chosen), React Router v6 (default when React + Vite), or Vue Router (when Vue).
 
 **State / storage:** Zustand + TanStack Query (default), Redux Toolkit (slice per entity, RTK Query optional), or Context + fetch. Patterns per choice: `.claude/rules/fe-state-management.md`.
@@ -72,6 +80,17 @@ Ask the user each of the following, one section at a time, and record their answ
 **Unit testing:** Vitest + Testing Library (default) or Jest + Testing Library.
 
 **E2E testing:** Playwright (default), Cypress, or none.
+
+**i18n:** Default **off**. If enabled, ship `react-i18next` + `i18next` + `i18next-browser-languagedetector`. Ask the user which locales to seed - **en** is required, **vi** is the suggested second locale. More locales can be added later without re-running `fe-setup`. `fe-boilerplate` emits `src/i18n/index.ts`, `src/i18n/<locale>.json` resource files, and a language picker in the admin Header.
+
+**Dark / light theme toggle:** Default **off**. If enabled, `fe-boilerplate` wires:
+- A `theme: 'light' | 'dark'` field on the UI slice / store (persisted to `localStorage`, seeded from `prefers-color-scheme` on first run).
+- A toggle button in the admin Header (sun / moon icon from the chosen icon library).
+- **Antd** → `ConfigProvider` algorithm swap (`theme.defaultAlgorithm` ↔ `theme.darkAlgorithm`), driven by the slice.
+- **MUI** → `createTheme({ palette: { mode } })` driven by the slice.
+- **shadcn / Tailwind** → `.dark` class on `<html>`; token values re-declared under `.dark` in `index.css`.
+
+**Animation:** Default **off**. If enabled, step 4b (below) delegates to **`fe-motion`** - it installs `motion` (successor to `framer-motion`), emits `src/lib/motion-presets.ts` with a reduced-motion short-circuit, and applies `fadeInUp` + `stagger` to the landing page's Hero / Features / CTA plus optional hover / press feedback on primary CTAs. Scope stays narrow (landing-page polish only, no admin dashboard motion). Rules: `.claude/rules/fe-motion.md`.
 
 ### 2. Confirmation
 
@@ -132,7 +151,7 @@ Create `src/lib/cn.ts` → `export const cn = (...inputs: ClassValue[]) => twMer
 
 - **Antd (default):**
   ```bash
-  pnpm add antd @ant-design/icons
+  pnpm add antd
   ```
   Next.js App Router also needs the SSR bridge:
   ```bash
@@ -142,7 +161,7 @@ Create `src/lib/cn.ts` → `export const cn = (...inputs: ClassValue[]) => twMer
 
 - **MUI:**
   ```bash
-  pnpm add @mui/material @emotion/react @emotion/styled @mui/icons-material
+  pnpm add @mui/material @emotion/react @emotion/styled
   ```
   Next.js App Router additionally:
   ```bash
@@ -154,6 +173,19 @@ Create `src/lib/cn.ts` → `export const cn = (...inputs: ClassValue[]) => twMer
   pnpm dlx shadcn@latest init
   ```
   `init` writes `components.json` and `src/components/ui/`. Set `aliases.utils` in `components.json` to `@/lib/cn` so shadcn reuses the `cn` helper from the Tailwind block. Add primitives on demand: `pnpm dlx shadcn@latest add button input card dialog`.
+
+**Icon library:** install the chosen package only - do not install a second icon lib "just in case".
+
+| Choice                      | Install                              |
+| --------------------------- | ------------------------------------ |
+| `@ant-design/icons`         | `pnpm add @ant-design/icons`         |
+| `@mui/icons-material`       | `pnpm add @mui/icons-material`       |
+| `lucide-react`              | `pnpm add lucide-react`              |
+| `@phosphor-icons/react`     | `pnpm add @phosphor-icons/react`     |
+| `@heroicons/react`          | `pnpm add @heroicons/react`          |
+| `@tabler/icons-react`       | `pnpm add @tabler/icons-react`       |
+
+Record the chosen package in `CLAUDE.md` so `fe-boilerplate` / `fe-component` imports from the same source every time.
 
 **State / storage:**
 
@@ -186,6 +218,16 @@ pnpm add axios zod
 Also add the form library that pairs with the UI choice:
 - shadcn/ui: `pnpm add react-hook-form @hookform/resolvers`
 - Antd / MUI: their built-in `Form` primitives - no install.
+
+**i18n (only if enabled):**
+```bash
+pnpm add i18next react-i18next i18next-browser-languagedetector
+```
+`fe-boilerplate` creates `src/i18n/index.ts` (initializes i18next, registers detector), `src/i18n/<locale>.json` resource files for each seeded locale, and imports `./i18n` once from `src/main.tsx` so init runs before `<App />` renders. Default-seeded locales: `en` (required) + any extras the user picked (`vi` is the suggested second).
+
+**Dark / light theme toggle (only if enabled):** no install - uses the state library already picked. `fe-boilerplate` adds a `theme` field to `src/store/ui-slice.ts` (Redux) or `src/store/ui-store.ts` (Zustand) with a `toggleTheme` reducer / action, persists it to `localStorage`, seeds from `prefers-color-scheme` on first mount, and wires the UI-library theme swap (Antd `ConfigProvider` algorithm, MUI `createTheme` mode, or `.dark` class on `<html>` for shadcn / Tailwind).
+
+**Animation (only if enabled):** no install here - deferred to `fe-motion` (see step 4b).
 
 **Lint / format (only if the CLI did not already set them up):**
 
@@ -240,6 +282,14 @@ Once install completes, run [Verification](#verification) before moving on.
 
 Ask first: "Scaffold starter pages?" Invoke `fe-boilerplate` to scaffold them (landing page, admin portal, or a custom description - combinable). Runs **before** auth, so auth pages are scaffolded as stubs under `src/stubs/auth/`.
 
+### 4b. Animation decision *(optional)*
+
+Only when **animation was enabled in step 1**. Runs after `fe-boilerplate` so the landing page exists for presets to apply against.
+
+- Invoke `fe-motion`. It installs `motion`, emits `src/lib/motion-presets.ts` with a single reduced-motion short-circuit, applies `fadeInUp` + `stagger` to the landing page's Hero / Features / CTA, and records a one-line capability status in `CLAUDE.md`.
+- If animation was **not** enabled in step 1, skip this step entirely.
+- If animation is enabled but no landing page was scaffolded in step 4, `fe-motion` emits presets only - application happens on the next `fe-boilerplate` run.
+
 ### 5. Authentication decision *(optional)*
 
 Ask: "Wire authentication now, or defer?" Auth is **optional at setup time** - you can skip it and invoke `fe-auth` later.
@@ -257,9 +307,10 @@ Storage recommendation per framework (full table in `fe-auth`):
 
 Create `CLAUDE.md` at project root capturing:
 
-- Selections from step 1.
+- Selections from step 1 - project name, PM, language, framework, UI library, Tailwind, **icon library**, router, state, lint, unit test, E2E test, **i18n locales (or `off`)**, **theme toggle (on / off)**, **animation (on / off)**.
 - Path alias rule, folder layout.
 - Auth status (wired now / deferred, link to `fe-auth`).
+- Optional capability status - one line each when enabled: `i18n: en, vi`, `theme toggle: on`, `animation: motion (landing-page defaults)`. Omit the line when the capability is off.
 - **Style section** - empty stub here; populated by `fe-boilerplate` step 0 (which asks for the direction). Fields:
   - Direction name.
   - 4–6 color hexes with names.
